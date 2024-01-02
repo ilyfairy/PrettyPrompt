@@ -130,6 +130,13 @@ public interface IPromptCallbacks
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Formatted input and new caret position.</returns>
     Task<(string Text, int Caret)> FormatInput(string text, int caret, KeyPress keyPress, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The state of the CompletionPane window has been modified
+    /// </summary>
+    /// <param name="isOpen"></param>
+    /// <returns></returns>
+    Task CompletionPaneWindowStateChanged(bool isOpen);
 }
 
 public class PromptCallbacks : IPromptCallbacks
@@ -210,6 +217,11 @@ public class PromptCallbacks : IPromptCallbacks
         Debug.Assert(caret >= 0 && caret <= text.Length);
 
         return GetOverloadsAsync(text, caret, cancellationToken);
+    }
+
+    Task IPromptCallbacks.CompletionPaneWindowStateChanged(bool isOpen)
+    {
+        return CompletionPaneWindowStateChanged(isOpen);
     }
 
     /// <summary>
@@ -299,4 +311,6 @@ public class PromptCallbacks : IPromptCallbacks
     /// <inheritdoc cref="GetOverloadsAsync(string, int, CancellationToken)"/>
     protected virtual Task<(IReadOnlyList<OverloadItem>, int ArgumentIndex)> GetOverloadsAsync(string text, int caret, CancellationToken cancellationToken)
         => Task.FromResult<(IReadOnlyList<OverloadItem>, int ArgumentIndex)>((Array.Empty<OverloadItem>(), 0));
+
+    protected virtual Task CompletionPaneWindowStateChanged(bool isOpen) => Task.CompletedTask;
 }

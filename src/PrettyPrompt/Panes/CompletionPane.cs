@@ -69,16 +69,20 @@ internal class CompletionPane : IKeyPressHandler
         FilteredView.SelectedItemChanged += SelectedItemChanged;
     }
 
-    private void Open()
+    private async Task Open()
     {
         this.IsOpen = true;
         this.allCompletions = Array.Empty<CompletionItem>();
+
+        await promptCallbacks.CompletionPaneWindowStateChanged(true).ConfigureAwait(false);
     }
 
     private async Task Close(CancellationToken cancellationToken)
     {
         IsOpen = false;
         await FilteredView.Clear(cancellationToken).ConfigureAwait(false);
+
+        await promptCallbacks.CompletionPaneWindowStateChanged(false).ConfigureAwait(false);
     }
 
     async Task IKeyPressHandler.OnKeyDown(KeyPress key, CancellationToken cancellationToken)
@@ -125,7 +129,7 @@ internal class CompletionPane : IKeyPressHandler
             {
                 if (codePane.Selection is null)
                 {
-                    Open();
+                    await Open();
                 }
                 key.Handled = true;
             }
@@ -138,7 +142,7 @@ internal class CompletionPane : IKeyPressHandler
             if (completionListTriggered)
             {
                 await Close(cancellationToken).ConfigureAwait(false);
-                Open();
+                await Open();
                 key.Handled = true;
             }
             return;
@@ -187,7 +191,7 @@ internal class CompletionPane : IKeyPressHandler
                 !completionListTriggeredOnKeyDown &&
                 await promptCallbacks.ShouldOpenCompletionWindowAsync(codePane.Document.GetText(), codePane.Document.Caret, key, cancellationToken).ConfigureAwait(false))
             {
-                Open();
+                await Open();
             }
         }
 
